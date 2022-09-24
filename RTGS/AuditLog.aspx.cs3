@@ -1,0 +1,78 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using ClosedXML.Excel;
+using System.IO;
+
+namespace RTGS
+{
+    public partial class AuditLog : System.Web.UI.Page
+    {
+        private System.Web.HttpResponse httpResponse;
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!Page.IsPostBack)
+            {
+                ddlDay.SelectedValue = System.DateTime.Today.Day.ToString().PadLeft(2, '0');
+                ddlMonth.SelectedValue = System.DateTime.Today.Month.ToString().PadLeft(2, '0');
+                ddlYear.SelectedValue = System.DateTime.Today.Year.ToString();
+            }
+        }
+
+        protected void SubmitBtn_Click(object sender, EventArgs e)
+        {
+            DataTable dt = GetData();
+            SearchGrid.DataSource = dt;
+            SearchGrid.DataBind();
+
+            dt.Dispose();
+            SearchGrid.Dispose();
+        }
+        private DataTable GetData()
+        {
+            string SttlmDt = ddlYear.SelectedValue + "-" + ddlMonth.SelectedValue + "-" + ddlDay.SelectedValue;
+            
+            AuditDB db = new AuditDB();
+            DataTable dt = db.AuditSearch(ClearingType.SelectedItem.Text, SttlmDt, InputData.Text.Trim());
+
+            return dt;
+        }
+
+        protected void ExcelBtn_Click(object sender, EventArgs e)
+        {
+            DataTable dt = GetData();
+
+            if (dt.Rows.Count > 0)
+            {
+                string SettlementDate = ddlYear.SelectedValue + "-" + ddlMonth.SelectedValue + "-" + ddlDay.SelectedValue;
+                string xlsFileName = "AuditLog-D"+ System.DateTime.Today.ToString("yyyyMMdd") + "-T" + System.DateTime.Now.ToString("HHmmss") + ".xlsx";
+
+                XLWorkbook workbook = new XLWorkbook();
+                workbook.Worksheets.Add(dt, "Sheet1");
+
+                // Prepare the response
+                httpResponse = Response;
+                httpResponse.Clear();
+                httpResponse.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                string attachment = "attachment; filename=" + xlsFileName;
+                httpResponse.AddHeader("content-disposition", attachment);
+
+                // Flush the workbook to the Response.OutputStream
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    workbook.SaveAs(memoryStream);
+                    memoryStream.WriteTo(httpResponse.OutputStream);
+                    memoryStream.Close();
+                }
+
+                dt.Dispose();
+                httpResponse.End();
+
+            }
+        }
+    }
+}

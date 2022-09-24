@@ -1,0 +1,40 @@
+using System;
+using System.Data;
+using System.Configuration;
+using System.Data.SqlClient;
+
+namespace RTGS
+{
+    public class AuditDB
+    {
+        public DataTable AuditSearch(string ClearingType, string SttlmDt, string TransID)
+        {
+            SqlConnection myConnection = new SqlConnection(AppVariables.ConStr);
+            SqlDataAdapter myCommand = new SqlDataAdapter("SearchAudit", myConnection);
+            myCommand.SelectCommand.CommandType = CommandType.StoredProcedure;
+
+            SqlParameter parameterClearingType = new SqlParameter("@ClearingType", SqlDbType.VarChar, 7);
+            parameterClearingType.Value = ClearingType;
+            myCommand.SelectCommand.Parameters.Add(parameterClearingType);
+
+            SqlParameter parameterSttlmDt = new SqlParameter("@SttlmDt", SqlDbType.VarChar, 10);
+            parameterSttlmDt.Value = SttlmDt;
+            myCommand.SelectCommand.Parameters.Add(parameterSttlmDt);
+
+            SqlParameter parameterTransID = new SqlParameter("@TransID", SqlDbType.VarChar, 30);
+            parameterTransID.Value = TransID;
+            myCommand.SelectCommand.Parameters.Add(parameterTransID); 
+            
+            myConnection.Open();
+            DataTable dt = new DataTable();
+            myCommand.Fill(dt);
+
+            myConnection.Close();
+            myConnection.Dispose();
+            myCommand.Dispose();   
+
+            return dt;
+        }
+    }
+}
+

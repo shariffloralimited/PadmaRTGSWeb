@@ -1,0 +1,1094 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Xml;
+using System.IO;
+using System.Configuration;
+
+namespace FloraSoft
+{
+    public class MXGenerator
+    {
+        public void GenPacs008(string OutwardID, string CartID, string Priority, string UserName, string UserIP)
+        {
+            RTGSImporter.TeamRedDB db = new RTGSImporter.TeamRedDB();
+            RTGSImporter.Pacs008 pacs = db.GetSingleCartOutward08(OutwardID, CartID);
+
+            if (pacs.PacsID == "")
+                return;
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+
+            sb.Append("<Saa:DataPDU xmlns:Saa=\"urn:swift:saa:xsd:saa.2.0\" xmlns:Sw=\"urn:swift:snl:ns.Sw\" xmlns:SwGbl=\"urn:swift:snl:ns.SwGbl\" xmlns:SwInt=\"urn:swift:snl:ns.SwInt\" xmlns:SwSec=\"urn:swift:snl:ns.SwSec\">");
+
+            sb.Append("<Body>");
+
+            #region AppHdr
+            sb.Append("<AppHdr xmlns:auto-ns1=\"urn:swift:saa:xsd:saa.2.0\" xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">");
+            sb.Append("<Fr>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>" + pacs.FrBICFI + "</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</Fr>");
+            sb.Append("<To>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>" + pacs.ToBICFI + "</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</To>");
+            sb.Append("<BizMsgIdr>" + pacs.BizMsgIdr + "</BizMsgIdr>");
+            sb.Append("<MsgDefIdr>" + pacs.MsgDefIdr + "</MsgDefIdr>");
+            sb.Append("<BizSvc>" + pacs.BizSvc + "</BizSvc>");
+            sb.Append("<CreDt>" + pacs.CreDt + "</CreDt>");
+            sb.Append("</AppHdr>"); 
+            #endregion
+            
+            sb.Append("<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.008.001.04\">");
+            sb.Append("<FIToFICstmrCdtTrf>");
+
+            #region GrpHdr
+            sb.Append("<GrpHdr>");
+            sb.Append("<MsgId>" + pacs.MsgId + "</MsgId>");
+            sb.Append("<CreDtTm>" + pacs.CreDtTm + "</CreDtTm>");
+            sb.Append("<BtchBookg>" + pacs.BtchBookg.ToLower() + "</BtchBookg>");
+            sb.Append("<NbOfTxs>" + pacs.NbOfTxs + "</NbOfTxs>");
+            sb.Append("<TtlIntrBkSttlmAmt Ccy=\"" + pacs.Ccy + "\">" + pacs.TtlIntrBkSttlmAmt.ToString("F2") + "</TtlIntrBkSttlmAmt>");
+            sb.Append("<IntrBkSttlmDt>" + pacs.IntrBkSttlmDt + "</IntrBkSttlmDt>");
+            sb.Append("<SttlmInf>");
+            sb.Append("<SttlmMtd>CLRG</SttlmMtd>");
+            sb.Append("</SttlmInf>");
+            sb.Append("</GrpHdr>"); 
+            #endregion
+
+            #region CdtTrfTxInf
+            //sb.Append("<CdtTrfTxInf>");
+            //sb.Append("<PmtId>");
+            //sb.Append("<InstrId>" + pacs.InstrId + "</InstrId>");
+            //sb.Append("<EndToEndId>" + pacs.EndToEndId + "</EndToEndId>");
+            //sb.Append("<TxId>" + pacs.TxId + "</TxId>");
+            //sb.Append("</PmtId>");
+
+            //sb.Append("<PmtTpInf>");
+            //sb.Append("<ClrChanl>" + pacs.ClrChanl + "</ClrChanl>");
+            //sb.Append("<SvcLvl>");
+            //sb.Append("<Prtry>" + Priority.PadLeft(4, '0') + "</Prtry>");
+            //sb.Append("</SvcLvl>");
+            //sb.Append("<LclInstrm>");
+            //sb.Append("<Prtry>" + pacs.LclInstrmPrtry + "</Prtry>");
+            //sb.Append("</LclInstrm>");
+            //sb.Append("<CtgyPurp>");
+            //sb.Append("<Prtry>" + pacs.CtgyPurpPrtry.PadLeft(3, '0') + "</Prtry>");
+            //sb.Append("</CtgyPurp>");
+            //sb.Append("</PmtTpInf>");
+
+            //sb.Append("<IntrBkSttlmAmt Ccy=\"" + pacs.Ccy + "\">" + pacs.IntrBkSttlmAmt.ToString("F2") + "</IntrBkSttlmAmt>");
+            //sb.Append("<IntrBkSttlmDt>" + pacs.IntrBkSttlmDt + "</IntrBkSttlmDt>");
+            //sb.Append("<ChrgBr>" + pacs.ChrgBr + "</ChrgBr>");
+
+            //if ((pacs.InstgAgtBICFI != "") || (pacs.InstgAgtNm != ""))
+            //{
+            //    sb.Append("<InstgAgt>");
+            //    sb.Append("<FinInstnId>");
+            //    if (pacs.InstgAgtBICFI != "")
+            //    {
+            //        sb.Append("<BICFI>" + pacs.InstgAgtBICFI + "</BICFI>");
+            //    }
+            //    else
+            //    {
+            //        sb.Append("<Nm>" + pacs.InstgAgtNm + "</Nm>");
+            //    }
+            //    sb.Append("</FinInstnId>");
+
+            //    //if (pacs.InstgAgtBranchId != "")
+            //    //{
+            //    //    sb.Append("<BrnchId>");
+            //    //    sb.Append("<Id>" + pacs.InstgAgtBranchId + "</Id>");
+            //    //    sb.Append("</BrnchId>");
+            //    //}
+
+            //    sb.Append("</InstgAgt>");
+            //}
+
+            //if ((pacs.InstdAgtBICFI != "") || (pacs.InstdAgtNm != ""))
+            //{
+            //    sb.Append("<InstdAgt>");
+            //    sb.Append("<FinInstnId>");
+            //    if (pacs.InstdAgtBICFI != "")
+            //    {
+            //        sb.Append("<BICFI>" + pacs.InstdAgtBICFI + "</BICFI>");
+            //    }
+            //    else
+            //    {
+            //        sb.Append("<Nm>" + pacs.InstdAgtNm + "</Nm>");
+            //    }
+            //    sb.Append("</FinInstnId>");
+            //    //if (pacs.InstdAgtBranchId != "")
+            //    //{
+            //    //    sb.Append("<BrnchId>");
+            //    //    sb.Append("<Id>" + pacs.InstdAgtBranchId + "</Id>");
+            //    //    sb.Append("</BrnchId>");
+            //    //}
+            //    sb.Append("</InstdAgt>");
+            //}
+
+            //sb.Append("<Dbtr>");
+            //sb.Append("<Nm>" + pacs.DbtrNm + "</Nm>");
+            //if (pacs.DbtrPstlAdr != "")
+            //{
+            //    sb.Append("<PstlAdr>" + pacs.DbtrPstlAdr + "</PstlAdr>");
+            //}
+            //if (pacs.DbtrStrtNm != "")
+            //{
+
+            //    sb.Append("<StrtNm>" + pacs.DbtrStrtNm + "</StrtNm>");
+            //}
+            //if (pacs.DbtrTwnNm != "")
+            //{
+
+            //    sb.Append("<TwnNm>" + pacs.DbtrTwnNm + "</TwnNm>");
+            //}
+            //if (pacs.DbtrCtry != "")
+            //{
+
+            //    sb.Append("<Ctry>" + pacs.DbtrCtry + "</Ctry>");
+            //}
+            //if (pacs.DbtrAdrLine != "")
+            //{
+
+            //    sb.Append("<AdrLine>" + pacs.DbtrAdrLine + "</AdrLine>");
+            //}
+            //sb.Append("</Dbtr>");
+
+            //sb.Append("<DbtrAcct>");
+            //sb.Append("<Id>");
+            //sb.Append("<Othr>");
+            //sb.Append("<Id>" + pacs.DbtrAcctOthrId + "</Id>");
+            //sb.Append("</Othr>");
+            //sb.Append("</Id>");
+            //sb.Append("</DbtrAcct>");
+
+            //if ((pacs.DbtrAgtBICFI != "") || (pacs.DbtrAgtNm != ""))
+            //{
+            //    sb.Append("<DbtrAgt>");
+            //    sb.Append("<FinInstnId>");
+            //    if (pacs.DbtrAgtBICFI != "")
+            //    {
+            //        sb.Append("<BICFI>" + pacs.DbtrAgtBICFI + "</BICFI>");
+            //    }
+            //    else
+            //    {
+            //        sb.Append("<Nm>" + pacs.DbtrAgtNm + "</Nm>");
+            //    }
+            //    sb.Append("</FinInstnId>");
+            //    if (pacs.DbtrAgtBranchId != "")
+            //    {
+            //        sb.Append("<BrnchId>");
+            //        sb.Append("<Id>" + pacs.DbtrAgtBranchId + "</Id>");
+            //        sb.Append("</BrnchId>");
+            //    }
+            //    sb.Append("</DbtrAgt>");
+            //}
+
+            //if (pacs.DbtrAgtAcctOthrId != "")
+            //{
+            //    sb.Append("<DbtrAgtAcct>");
+            //    sb.Append("<Id>");
+            //    sb.Append("<Othr>");
+            //    sb.Append("<Id>" + pacs.DbtrAgtAcctOthrId + "</Id>");
+            //    sb.Append("</Othr>");
+            //    sb.Append("</Id>");
+            //    if (pacs.DbtrAgtAcctPrtry != "")
+            //    {
+            //        sb.Append("<Tp>");
+            //        sb.Append("<Prtry>" + pacs.DbtrAgtAcctPrtry + "</Prtry>");
+            //        sb.Append("</Tp>");
+            //    }
+            //    sb.Append("</DbtrAgtAcct>");
+            //}
+
+            //if ((pacs.CdtrAgtBICFI != "") || (pacs.CdtrAgtNm != ""))
+            //{
+            //    sb.Append("<CdtrAgt>");
+            //    sb.Append("<FinInstnId>");
+            //    if (pacs.CdtrAgtBICFI != "")
+            //    {
+            //        sb.Append("<BICFI>" + pacs.CdtrAgtBICFI + "</BICFI>");
+            //    }
+            //    else
+            //    {
+            //        sb.Append("<Nm>>" + pacs.CdtrAgtNm + "</Nm>");
+            //    }
+            //    sb.Append("</FinInstnId>");
+            //    if (pacs.CdtrAgtBranchId != "")
+            //    {
+            //        sb.Append("<BrnchId>");
+            //        sb.Append("<Id>" + pacs.CdtrAgtBranchId + "</Id>");
+            //        sb.Append("</BrnchId>");
+            //    }
+            //    sb.Append("</CdtrAgt>");
+            //}
+
+            //if (pacs.CdtrAgtAcctOthrId != "")
+            //{
+            //    sb.Append("<CdtrAgtAcct>");
+            //    sb.Append("<Id>");
+            //    sb.Append("<Othr>");
+            //    sb.Append("<Id>" + pacs.CdtrAgtAcctOthrId + "</Id>");
+            //    sb.Append("</Othr>");
+            //    sb.Append("</Id>");
+            //    if (pacs.CdtrAgtAcctPrtry != "")
+            //    {
+            //        sb.Append("<Tp>");
+            //        sb.Append("<Prtry>" + pacs.CdtrAgtAcctPrtry + "</Prtry>");
+            //        sb.Append("</Tp>");
+            //    }
+            //    sb.Append("</CdtrAgtAcct>");
+            //}
+
+            //sb.Append("<Cdtr>");
+            //sb.Append("<Nm>" + pacs.CdtrNm + "</Nm>");
+            //if (pacs.CdtrPstlAdr != "")
+            //{
+            //    sb.Append("<PstlAdr>" + pacs.CdtrPstlAdr + "</PstlAdr>");
+            //}
+            //if (pacs.CdtrStrtNm != "")
+            //{
+            //    sb.Append("<StrtNm>" + pacs.CdtrStrtNm + "</StrtNm>");
+            //}
+            //if (pacs.CdtrTwnNm != "")
+            //{
+            //    sb.Append("<TwnNm>" + pacs.CdtrTwnNm + "</TwnNm>");
+            //}
+            //if (pacs.CdtrCtry != "")
+            //{
+            //    sb.Append("<Ctry>" + pacs.CdtrCtry + "</Ctry>");
+            //}
+            //if (pacs.CdtrAdrLine != "")
+            //{
+            //    sb.Append("<AdrLine>" + pacs.CdtrAdrLine + "</AdrLine>");
+            //}
+            //sb.Append("</Cdtr>");
+
+            //sb.Append("<CdtrAcct>");
+            //sb.Append("<Id>");
+            //sb.Append("<Othr>");
+            //sb.Append("<Id>" + pacs.CdtrAcctOthrId + "</Id>");
+            //sb.Append("</Othr>");
+            //sb.Append("</Id>");
+            //if (pacs.CdtrAcctPrtry != "")
+            //{
+            //    sb.Append("<Tp>");
+            //    sb.Append("<Prtry>" + pacs.CdtrAcctPrtry + "</Prtry>");
+            //    sb.Append("</Tp>");
+            //}
+            //sb.Append("</CdtrAcct>");
+
+            //if (pacs.InstrInf != "")
+            //{
+            //    sb.Append("<InstrForNxtAgt>");
+            //    sb.Append("<InstrInf>" + pacs.InstrInf + "</InstrInf>");
+            //    sb.Append("</InstrForNxtAgt>");
+            //}
+            //if (pacs.Ustrd != "")
+            //{
+            //    sb.Append("<RmtInf>");
+            //    sb.Append("<Ustrd>" + pacs.Ustrd + "</Ustrd>");
+            //    sb.Append("</RmtInf>");
+            //}
+            //sb.Append("</CdtTrfTxInf>"); 
+            #endregion
+
+            for (int i = 0; i < pacs.NbOfTxs; i++)
+            {
+                RTGSImporter.Pacs008 pacs1 = db.GetSingleOutward08ByBatchBookingID(pacs.BatchBookingID, i);
+                string CdtInfo = GenPacs008CdtTrfInf(pacs1, Priority);
+                sb.Append(CdtInfo);
+            }
+
+            sb.Append("</FIToFICstmrCdtTrf>");
+            sb.Append("</Document>");
+            sb.Append("</Body>");
+            sb.Append("</Saa:DataPDU>");
+
+            string filename = pacs.BizMsgIdr + ".xml";
+            string path = ConfigurationManager.AppSettings["LocalSTPPath"] + "\\Export\\MX\\" + filename;
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(sb.ToString());
+            doc.Save(path);
+
+            string[] lines = File.ReadAllLines(path);
+            File.WriteAllLines(path, lines);
+
+            if(File.Exists(path))
+            {
+                long length = new System.IO.FileInfo(path).Length;
+                if (length > 2024)
+                {
+                    db.SendOutward08(OutwardID, UserName, UserIP);
+                }
+            }
+
+        }
+
+        public string GenPacs008CdtTrfInf(RTGSImporter.Pacs008 pacs, string Priority)
+        {
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            #region SubCdtTrfInf
+            sb.Append("<CdtTrfTxInf>");
+            sb.Append("<PmtId>");
+            sb.Append("<InstrId>" + pacs.InstrId + "</InstrId>");
+            sb.Append("<EndToEndId>" + pacs.EndToEndId + "</EndToEndId>");
+            sb.Append("<TxId>" + pacs.TxId + "</TxId>");
+            sb.Append("</PmtId>");
+            sb.Append("<PmtTpInf>");
+            sb.Append("<ClrChanl>" + pacs.ClrChanl + "</ClrChanl>");
+            sb.Append("<SvcLvl>");
+            sb.Append("<Prtry>" + Priority.PadLeft(4, '0') + "</Prtry>");
+            sb.Append("</SvcLvl>");
+            sb.Append("<LclInstrm>");
+            sb.Append("<Prtry>" + pacs.LclInstrmPrtry + "</Prtry>");
+            sb.Append("</LclInstrm>");
+            sb.Append("<CtgyPurp>");
+            sb.Append("<Prtry>" + pacs.CtgyPurpPrtry + "</Prtry>");
+            sb.Append("</CtgyPurp>");
+            sb.Append("</PmtTpInf>");
+            sb.Append("<IntrBkSttlmAmt Ccy=\"" + pacs.Ccy + "\">" + pacs.IntrBkSttlmAmt.ToString("F2") + "</IntrBkSttlmAmt>");
+            sb.Append("<IntrBkSttlmDt>" + pacs.IntrBkSttlmDt + "</IntrBkSttlmDt>");
+            sb.Append("<ChrgBr>" + pacs.ChrgBr + "</ChrgBr>");
+
+            if ((pacs.InstgAgtBICFI != "") || (pacs.InstgAgtNm != ""))
+            {
+                sb.Append("<InstgAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.InstgAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.InstgAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.InstgAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+
+                if (pacs.InstgAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.InstgAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</InstgAgt>");
+            }
+            if ((pacs.InstdAgtBICFI != "") || (pacs.InstdAgtNm != ""))
+            {
+                sb.Append("<InstdAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.InstdAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.InstdAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.InstdAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                if (pacs.InstdAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.InstdAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</InstdAgt>");
+            }
+            sb.Append("<Dbtr>");
+            sb.Append("<Nm>" + pacs.DbtrNm + "</Nm>");
+            if (pacs.DbtrPstlAdr != "")
+            {
+                sb.Append("<PstlAdr>" + pacs.DbtrPstlAdr + "</PstlAdr>");
+            }
+            if (pacs.DbtrStrtNm != "")
+            {
+
+                sb.Append("<StrtNm>" + pacs.DbtrStrtNm + "</StrtNm>");
+            }
+            if (pacs.DbtrTwnNm != "")
+            {
+
+                sb.Append("<TwnNm>" + pacs.DbtrTwnNm + "</TwnNm>");
+            }
+            if (pacs.DbtrCtry != "")
+            {
+
+                sb.Append("<Ctry>" + pacs.DbtrCtry + "</Ctry>");
+            }
+            if (pacs.DbtrAdrLine != "")
+            {
+
+                sb.Append("<AdrLine>" + pacs.DbtrAdrLine + "</AdrLine>");
+            }
+            sb.Append("</Dbtr>");
+
+            sb.Append("<DbtrAcct>");
+            sb.Append("<Id>");
+            sb.Append("<Othr>");
+            sb.Append("<Id>" + pacs.DbtrAcctOthrId + "</Id>");
+            sb.Append("</Othr>");
+            sb.Append("</Id>");
+            sb.Append("</DbtrAcct>");
+
+            if ((pacs.DbtrAgtBICFI != "") || (pacs.DbtrAgtNm != ""))
+            {
+                sb.Append("<DbtrAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.DbtrAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.DbtrAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.DbtrAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                if (pacs.DbtrAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.DbtrAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</DbtrAgt>");
+            }
+
+            if (pacs.DbtrAgtAcctOthrId != "")
+            {
+                sb.Append("<DbtrAgtAcct>");
+                sb.Append("<Id>");
+                sb.Append("<Othr>");
+                sb.Append("<Id>" + pacs.DbtrAgtAcctOthrId + "</Id>");
+                sb.Append("</Othr>");
+                sb.Append("</Id>");
+                if (pacs.DbtrAgtAcctPrtry != "")
+                {
+                    sb.Append("<Tp>");
+                    sb.Append("<Prtry>" + pacs.DbtrAgtAcctPrtry + "</Prtry>");
+                    sb.Append("</Tp>");
+                }
+                sb.Append("</DbtrAgtAcct>");
+            }
+
+            if ((pacs.CdtrAgtBICFI != "") || (pacs.CdtrAgtNm != ""))
+            {
+                sb.Append("<CdtrAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.CdtrAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.CdtrAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>>" + pacs.CdtrAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                if (pacs.CdtrAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.CdtrAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</CdtrAgt>");
+            }
+
+            if (pacs.CdtrAgtAcctOthrId != "")
+            {
+                sb.Append("<CdtrAgtAcct>");
+                sb.Append("<Id>");
+                sb.Append("<Othr>");
+                sb.Append("<Id>" + pacs.CdtrAgtAcctOthrId + "</Id>");
+                sb.Append("</Othr>");
+                sb.Append("</Id>");
+                if (pacs.CdtrAgtAcctPrtry != "")
+                {
+                    sb.Append("<Tp>");
+                    sb.Append("<Prtry>" + pacs.CdtrAgtAcctPrtry + "</Prtry>");
+                    sb.Append("</Tp>");
+                }
+                sb.Append("</CdtrAgtAcct>");
+            }
+
+            sb.Append("<Cdtr>");
+            sb.Append("<Nm>" + pacs.CdtrNm + "</Nm>");
+            if (pacs.CdtrPstlAdr != "")
+            {
+                sb.Append("<PstlAdr>" + pacs.CdtrPstlAdr + "</PstlAdr>");
+            }
+            if (pacs.CdtrStrtNm != "")
+            {
+                sb.Append("<StrtNm>" + pacs.CdtrStrtNm + "</StrtNm>");
+            }
+            if (pacs.CdtrTwnNm != "")
+            {
+                sb.Append("<TwnNm>" + pacs.CdtrTwnNm + "</TwnNm>");
+            }
+            if (pacs.CdtrCtry != "")
+            {
+                sb.Append("<Ctry>" + pacs.CdtrCtry + "</Ctry>");
+            }
+            if (pacs.CdtrAdrLine != "")
+            {
+                sb.Append("<AdrLine>" + pacs.CdtrAdrLine + "</AdrLine>");
+            }
+            sb.Append("</Cdtr>");
+
+            sb.Append("<CdtrAcct>");
+            sb.Append("<Id>");
+            sb.Append("<Othr>");
+            sb.Append("<Id>" + pacs.CdtrAcctOthrId + "</Id>");
+            sb.Append("</Othr>");
+            sb.Append("</Id>");
+            if (pacs.CdtrAcctPrtry != "")
+            {
+                sb.Append("<Tp>");
+                sb.Append("<Prtry>" + pacs.CdtrAcctPrtry + "</Prtry>");
+                sb.Append("</Tp>");
+            }
+            sb.Append("</CdtrAcct>");
+
+            if (pacs.InstrInf != "")
+            {
+                sb.Append("<InstrForNxtAgt>");
+                sb.Append("<InstrInf>" + pacs.InstrInf + "</InstrInf>");
+                sb.Append("</InstrForNxtAgt>");
+            }
+            if (pacs.Ustrd != "")
+            {
+                sb.Append("<RmtInf>");
+                sb.Append("<Ustrd>" + pacs.Ustrd + "</Ustrd>");
+                sb.Append("</RmtInf>");
+            }
+            sb.Append("</CdtTrfTxInf>");
+            #endregion
+
+            return sb.ToString();
+        }
+        public void GenPacs009(string OutwardID, string CartID, string  Priority, string UserName, string UserIP)
+        {
+            RTGSImporter.TeamBlueDB db = new RTGSImporter.TeamBlueDB();
+            RTGSImporter.Pacs009 pacs = db.GetSingleCartOutward09(OutwardID, CartID);
+
+            if (pacs.PacsID == "")
+                return;
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+
+            //sb.Append("<DataPDU xmlns=\"urn:swift:saa:xsd:saa.2.0\">");
+            //sb.Append("<Revision>2.0.5</Revision>");
+            //sb.Append("<Body>");
+            //sb.Append("<AppHdr xmlns:auto-ns1=\"urn:swift:saa:xsd:saa.2.0\" xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">");
+
+            sb.Append("<Saa:DataPDU xmlns:Saa=\"urn:swift:saa:xsd:saa.2.0\" xmlns:Sw=\"urn:swift:snl:ns.Sw\" xmlns:SwGbl=\"urn:swift:snl:ns.SwGbl\" xmlns:SwInt=\"urn:swift:snl:ns.SwInt\" xmlns:SwSec=\"urn:swift:snl:ns.SwSec\">");
+            sb.Append("<Saa:Body>");
+            sb.Append("<AppHdr:AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\" xmlns:AppHdr=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\">");
+            
+            sb.Append("<Fr>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>"+pacs.FrBICFI+"</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</Fr>");
+            sb.Append("<To>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>" + pacs.ToBICFI + "</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</To>");
+            sb.Append("<BizMsgIdr>" + pacs.BizMsgIdr + "</BizMsgIdr>");
+            sb.Append("<MsgDefIdr>" + pacs.MsgDefIdr + "</MsgDefIdr>");
+            sb.Append("<BizSvc>" + pacs.BizSvc + "</BizSvc>");
+            sb.Append("<CreDt>" + pacs.CreDt + "</CreDt>");
+            sb.Append("</AppHdr:AppHdr>");
+
+            //sb.Append("<Document xmlns:auto-ns1=\"urn:swift:saa:xsd:saa.2.0\" xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.009.001.04\">");
+
+            sb.Append("<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.009.001.04\">");
+            sb.Append("<FICdtTrf>");
+            sb.Append("<GrpHdr>");
+            sb.Append("<MsgId>" + pacs.MsgId + "</MsgId>");
+            sb.Append("<CreDtTm>" + pacs.CreDtTm + "</CreDtTm>");
+            sb.Append("<NbOfTxs>" + pacs.NbOfTxs + "</NbOfTxs>");
+            sb.Append("<SttlmInf>");
+            sb.Append("<SttlmMtd>CLRG</SttlmMtd>");
+            sb.Append("</SttlmInf>");
+            sb.Append("</GrpHdr>");
+            sb.Append("<CdtTrfTxInf>");
+
+            sb.Append("<PmtId>");
+            sb.Append("<InstrId>" + pacs.InstrId + "</InstrId>");
+            sb.Append("<EndToEndId>" + pacs.EndToEndId + "</EndToEndId>");
+            sb.Append("<TxId>" + pacs.TxId + "</TxId>");
+            sb.Append("</PmtId>");
+
+            sb.Append("<PmtTpInf>");
+            sb.Append("<ClrChanl>RTGS</ClrChanl>");
+
+            sb.Append("<SvcLvl>");
+            sb.Append("<Prtry>" + Priority.PadLeft(4, '0') + "</Prtry>");
+            sb.Append("</SvcLvl>");
+
+            sb.Append("<LclInstrm>");
+            sb.Append("<Prtry>" + pacs.LclInstrmPrtry + "</Prtry>");
+            sb.Append("</LclInstrm>");
+
+            sb.Append("<CtgyPurp>");
+            sb.Append("<Prtry>" + pacs.CtgyPurpPrtry + "</Prtry>");
+            sb.Append("</CtgyPurp>");
+            sb.Append("</PmtTpInf>");
+
+            sb.Append("<IntrBkSttlmAmt Ccy=\"" + pacs.IntrBkSttlmCcy + "\">" + pacs.IntrBkSttlmAmt.ToString("F2") + "</IntrBkSttlmAmt>");
+            //xmlstr = xmlstr + "	<IntrBkSttlmAmt Ccy=«" + pacs.IntrBkSttlmCcy + "»>" + pacs.IntrBkSttlmAmt.ToString("F2") + "</IntrBkSttlmAmt>");
+            sb.Append("<IntrBkSttlmDt>" + pacs.IntrBkSttlmDt + "</IntrBkSttlmDt>");
+
+            if ((pacs.InstgAgtBICFI != "") || (pacs.InstgAgtNm != ""))
+            {
+                sb.Append("<InstgAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.InstgAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.InstgAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.InstgAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                //if (pacs.InstgAgtBranchId != "")
+                //{
+                //    sb.Append("<BrnchId>");
+                //    sb.Append("<Id>" + pacs.InstgAgtBranchId + "</Id>");
+                //    sb.Append("</BrnchId>");
+                //}
+                sb.Append("</InstgAgt>");
+            }
+
+            if ((pacs.InstdAgtBICFI != "") || (pacs.InstdAgtNm != ""))
+            {
+                sb.Append("<InstdAgt>");
+                sb.Append("<FinInstnId>");
+                if (pacs.InstdAgtBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.InstdAgtBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.InstdAgtNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                //if (pacs.InstdAgtBranchId != "")
+                //{
+                //sb.Append("<BrnchId>");
+                //sb.Append("<Id>" + pacs.InstdAgtBranchId + "</Id>");
+                //sb.Append("</BrnchId>");
+                //}
+                sb.Append("</InstdAgt>");
+            }
+
+            if ((pacs.IntrmyAgt1BICFI != "") || (pacs.IntrmyAgt1Nm != ""))
+            {
+                sb.Append("<IntrmyAgt1>");
+                sb.Append("<FinInstnId>");
+                if (pacs.IntrmyAgt1BICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.IntrmyAgt1BICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.IntrmyAgt1Nm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                //if (pacs.IntrmyAgt1BranchId != "")
+                //{
+                //    sb.Append("<BrnchId>");
+                //    sb.Append("<Id>" + pacs.IntrmyAgt1BranchId + "</Id>");
+                //    sb.Append("</BrnchId>");
+                //}
+                sb.Append("</IntrmyAgt1>");
+            }
+
+            if (pacs.IntrmyAgt1AcctId != "")
+            {
+                sb.Append("<IntrmyAgt1Acct>");
+                sb.Append("<Id>");
+                sb.Append("<Othr>");
+                sb.Append("<Id>" + pacs.IntrmyAgt1AcctId + "</Id>");
+                sb.Append("</Othr>");
+                sb.Append("</Id>");
+                //if (pacs.IntrmyAgt1AcctTp != "")
+                //{
+                //sb.Append("<Tp>");
+                //sb.Append("<Prtry>" + pacs.IntrmyAgt1AcctTp + "</Prtry>");
+                //sb.Append("</Tp>");
+                //}
+                sb.Append("</IntrmyAgt1Acct>");
+            }
+
+            if ((pacs.DbtrBICFI != "") || (pacs.DbtrNm != ""))
+            {
+                sb.Append("<Dbtr>");
+                sb.Append("<FinInstnId>");
+                if (pacs.DbtrBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.DbtrBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.DbtrNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                if (pacs.DbtrBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.DbtrBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</Dbtr>");
+            }
+
+            sb.Append("<DbtrAcct>");
+            sb.Append("<Id>");
+            sb.Append("<Othr>");
+            sb.Append("<Id>" + pacs.DbtrAcctId + "</Id>");
+            sb.Append("</Othr>");
+            sb.Append("</Id>");
+            //if (pacs.DbtrAcctTp != "")
+            //{
+            //    sb.Append("<Tp>");
+            //    sb.Append("<Prtry>" + pacs.DbtrAcctTp + "</Prtry>");
+            //    sb.Append("</Tp>");
+            //}
+            sb.Append("</DbtrAcct>");
+
+            if (pacs.CdtrAgtBICFI != "")
+            {
+                sb.Append("<CdtrAgt>");
+                sb.Append("<FinInstnId>");
+                sb.Append("<BICFI>" + pacs.CdtrAgtBICFI + "</BICFI>");
+                sb.Append("</FinInstnId>");
+                if (pacs.CdtrAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.CdtrAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</CdtrAgt>");
+            }
+
+            if (pacs.CdtrAgtAcctId != "")
+            {
+                sb.Append("<CdtrAgtAcct>");
+                sb.Append("<Id>");
+                sb.Append("<Othr>");
+                sb.Append("<Id>" + pacs.CdtrAgtAcctId + "</Id>");
+                sb.Append("</Othr>");
+                sb.Append("</Id>");
+                //if (pacs.CdtrAgtAcctTp != "")
+                //{
+                //    sb.Append("<Tp>");
+                //    sb.Append("<Prtry>" + pacs.CdtrAgtAcctTp + "</Prtry>");
+                //    sb.Append("</Tp>");
+                //}
+                sb.Append("</CdtrAgtAcct>");
+            }
+
+            if ((pacs.CdtrBICFI != "") || (pacs.CdtrNm != ""))
+            {
+                sb.Append("<Cdtr>");
+                sb.Append("<FinInstnId>");
+                if (pacs.CdtrBICFI != "")
+                {
+                    sb.Append("<BICFI>" + pacs.CdtrBICFI + "</BICFI>");
+                }
+                else
+                {
+                    sb.Append("<Nm>" + pacs.CdtrNm + "</Nm>");
+                }
+                sb.Append("</FinInstnId>");
+                if (pacs.CdtrBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.CdtrBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</Cdtr>");
+            }
+
+            sb.Append("<CdtrAcct>");
+            sb.Append("<Id>");
+            sb.Append("<Othr>");
+            sb.Append("<Id>" + pacs.CdtrAcctId + "</Id>");
+            sb.Append("</Othr>");
+            sb.Append("</Id>");
+            //if (pacs.CdtrAcctTp != "")
+            //{
+            //    sb.Append("<Tp>");
+            //    sb.Append("<Prtry>" + pacs.CdtrAcctTp + "</Prtry>");
+            //    sb.Append("</Tp>");
+            //}
+            sb.Append("</CdtrAcct>");
+
+            if (pacs.InstrInf != "")
+            {
+                sb.Append("<InstrForNxtAgt>");
+                sb.Append("<InstrInf>" + pacs.InstrInf + "</InstrInf>");
+                sb.Append("</InstrForNxtAgt>");
+            }
+
+            sb.Append("</CdtTrfTxInf>");
+            sb.Append("</FICdtTrf>");
+            sb.Append("</Document>");
+            sb.Append("</Saa:Body>");
+            sb.Append("</Saa:DataPDU>");
+
+            string filename = pacs.BizMsgIdr + ".xml";
+            string path = ConfigurationManager.AppSettings["LocalSTPPath"] + "\\Export\\MX\\" + filename;
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(sb.ToString());
+            doc.Save(path);
+
+            string[] lines = File.ReadAllLines(path);
+            File.WriteAllLines(path, lines);
+
+            //using (FileStream fs = new FileStream(path, FileMode.Create))
+            //{
+            //    using (StreamWriter w = new StreamWriter(fs))
+            //    {
+            //        w.Write(xmlstr);
+            //    }
+            //}
+
+            if (File.Exists(path))
+            {
+                long length = new System.IO.FileInfo(path).Length;
+                if (length > 2024)
+                {
+                    db.SendOutward09(OutwardID, UserName, UserIP);
+                } 
+            }
+
+        }
+        public void GenPacs004(string OutwardID, string CartID, string Priority, string UserName, string UserIP)
+        {
+            RTGSImporter.TeamGreenDB db = new RTGSImporter.TeamGreenDB();
+            RTGSImporter.Pacs004 pacs = db.GetSingleCartOutward04(OutwardID, CartID);
+
+            if (pacs.Pacs004ID == "")
+                return;
+            
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+            sb.Append("<Saa:DataPDU xmlns:Saa=\"urn:swift:saa:xsd:saa.2.0\" xmlns:Sw=\"urn:swift:snl:ns.Sw\" xmlns:SwGbl=\"urn:swift:snl:ns.SwGbl\" xmlns:SwInt=\"urn:swift:snl:ns.SwInt\" xmlns:SwSec=\"urn:swift:snl:ns.SwSec\">");
+            sb.Append("<Saa:Body>");
+            sb.Append("<AppHdr:AppHdr xmlns=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\" xmlns:AppHdr=\"urn:iso:std:iso:20022:tech:xsd:head.001.001.01\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+
+            sb.Append("<Fr>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>"+ pacs.FrBICFI +"</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</Fr>");
+            sb.Append("<To>");
+            sb.Append("<FIId>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>BBHOBDDHRTG</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</FIId>");
+            sb.Append("</To>");
+            sb.Append("<BizMsgIdr>" + pacs.BizMsgIdr + "</BizMsgIdr>");
+            sb.Append("<MsgDefIdr>" + pacs.MsgDefIdr + "</MsgDefIdr>");
+            sb.Append("<BizSvc>" + pacs.BizSvc + "</BizSvc>");
+            sb.Append("<CreDt>" + pacs.CreDt + "</CreDt>");
+            sb.Append("</AppHdr:AppHdr>");
+
+            //sb.Append("<Document xmlns:auto-ns1=\"urn:swift:saa:xsd:saa.2.0\" xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.004.001.04\">");
+            sb.Append("<Document:Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:pacs.004.001.04\" xmlns:Document=\"urn:iso:std:iso:20022:tech:xsd:pacs.004.001.04\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+            sb.Append("<PmtRtr>");
+            sb.Append("<GrpHdr>");
+            sb.Append("<MsgId>" + pacs.MsgId + "</MsgId>");
+            sb.Append("<CreDtTm>" + pacs.CreDtTm + "</CreDtTm>");
+            sb.Append("<NbOfTxs>" + pacs.NbOfTxs + "</NbOfTxs>");
+            sb.Append("<SttlmInf>");
+            sb.Append("<SttlmMtd>CLRG</SttlmMtd>");
+            sb.Append("</SttlmInf>");
+            sb.Append("</GrpHdr>");
+            sb.Append("<OrgnlGrpInf>");
+            sb.Append("<OrgnlMsgId>" + pacs.OrgnlMsgId + "</OrgnlMsgId>");
+            sb.Append("<OrgnlMsgNmId>" + pacs.OrgnlMsgNmId + "</OrgnlMsgNmId>");
+            sb.Append("<OrgnlCreDtTm>" + pacs.OrgnlCreDtTm + "</OrgnlCreDtTm>");
+            sb.Append("<RtrRsnInf>");
+            sb.Append("<Rsn>");
+            sb.Append("<Prtry>" + pacs.RtrRsnPrtry + "</Prtry>");
+            sb.Append("</Rsn>");
+            sb.Append("<AddtlInf>" + pacs.RtrRsnAddtlInf + "</AddtlInf>");
+            sb.Append("</RtrRsnInf>");
+            sb.Append("</OrgnlGrpInf>");
+            sb.Append("<TxInf>");
+            sb.Append("<RtrId>" + pacs.RtrId + "</RtrId>");
+            sb.Append("<OrgnlInstrId>" + pacs.OrgnlInstrId + "</OrgnlInstrId>");
+            sb.Append("<OrgnlEndToEndId>" + pacs.OrgnlEndToEndId + "</OrgnlEndToEndId>");
+            sb.Append("<OrgnlTxId>" + pacs.OrgnlTxId + "</OrgnlTxId>");
+            sb.Append("<RtrdIntrBkSttlmAmt Ccy=\"" + pacs.RtrdIntrBkSttlmCcy + "\">" + pacs.RtrdIntrBkSttlmAmt.ToString("F2") +"</RtrdIntrBkSttlmAmt>");
+            sb.Append("<IntrBkSttlmDt>" + pacs.TxInfIntrBkSttlmDt + "</IntrBkSttlmDt>");
+            sb.Append("<ChrgBr>" + pacs.ChrgBr + "</ChrgBr>");
+
+            if (pacs.InstgAgtBICFI != "")
+            {
+                sb.Append("<InstgAgt>");
+                sb.Append("<FinInstnId>");
+                sb.Append("<BICFI>" + pacs.InstgAgtBICFI + "</BICFI>");
+                sb.Append("</FinInstnId>");
+                sb.Append("</InstgAgt>");
+            }
+            if (pacs.InstgAgtBICFI != "")
+            {
+                sb.Append("<InstgAgt>");
+                sb.Append("<FinInstnId>");
+                sb.Append("<BICFI>" + pacs.InstgAgtBICFI + "</BICFI>");
+                sb.Append("</FinInstnId>");
+                sb.Append("</InstgAgt>");
+            }
+            if (pacs.DbtrAgtBICFI != "")
+            {
+                sb.Append("<DbtrAgt>");
+                sb.Append("<FinInstnId>");
+                sb.Append("<BICFI>" + pacs.DbtrAgtBICFI + "</BICFI>");
+                sb.Append("</FinInstnId>");
+                if (pacs.DbtrAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>"+ pacs.DbtrAgtBranchId+"</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</DbtrAgt>");
+            }
+
+            if (pacs.DbtrAgtAcctId != "")
+            {
+                sb.Append("<DbtrAgtAcct>");
+                sb.Append("<Id>");
+                sb.Append("<Othr>");
+                sb.Append("<Id>" + pacs.DbtrAgtAcctId + "</Id>");
+                sb.Append("</Othr>");
+                sb.Append("</Id>");
+                if (pacs.DbtrAgtAcctPrtry != "")
+                {
+                    sb.Append("<Tp>");
+                    sb.Append("<Prtry>" + pacs.DbtrAgtAcctPrtry + "</Prtry>");
+                    sb.Append("</Tp>");
+                }
+                sb.Append("</DbtrAgtAcct>");
+            }
+
+            if (pacs.CdtrAgtBICFI != "")
+            {
+                sb.Append("<CdtrAgt>");
+                sb.Append("<FinInstnId>");
+                sb.Append("<BICFI>" + pacs.CdtrAgtBICFI + "</BICFI>");
+                sb.Append("</FinInstnId>");
+                if (pacs.CdtrAgtBranchId != "")
+                {
+                    sb.Append("<BrnchId>");
+                    sb.Append("<Id>" + pacs.CdtrAgtBranchId + "</Id>");
+                    sb.Append("</BrnchId>");
+                }
+                sb.Append("</CdtrAgt>");
+
+                if (pacs.CdtrAgtAcctId != "")
+                {
+                    sb.Append("<CdtrAgtAcct>");
+                    sb.Append("<Id>");
+                    sb.Append("<Othr>");
+                    sb.Append("<Id>" + pacs.CdtrAgtAcctId + "</Id>");
+                    sb.Append("</Othr>");
+                    sb.Append("</Id>");
+                    if (pacs.CdtrAcctTpPrtry != "")
+                    {
+                        sb.Append("<Tp>");
+                        sb.Append("<Prtry>" + pacs.CdtrAcctTpPrtry + "</Prtry>");
+                        sb.Append("</Tp>");
+                    }
+                    sb.Append("</CdtrAgtAcct>");
+                }
+
+
+            }
+
+            sb.Append("<OrgnlTxRef>");
+            sb.Append("<IntrBkSttlmAmt Ccy=\"" + pacs.RtrdIntrBkSttlmCcy + "\">" + pacs.TxRefIntrBkSttlmAmt.ToString("F2") + "</IntrBkSttlmAmt>");
+            sb.Append("<IntrBkSttlmDt>" + pacs.TxInfIntrBkSttlmDt + "</IntrBkSttlmDt>");
+            sb.Append("<PmtTpInf>");
+            sb.Append("<ClrChanl>RTGS</ClrChanl>");
+            sb.Append("<SvcLvl>");
+            sb.Append("<Prtry>" + pacs.SvcLvlPrtry.ToString().PadLeft(4, '0') + "</Prtry>");
+            sb.Append("</SvcLvl>");
+            sb.Append("<LclInstrm>");
+            sb.Append("<Prtry>" + pacs.LclInstrmPrtry + "</Prtry>");
+            sb.Append("</LclInstrm>");
+            sb.Append("<CtgyPurp>");
+            sb.Append("<Prtry>" + pacs.CtgyPurpPrtry.PadLeft(3, '0') + "</Prtry>");
+            sb.Append("</CtgyPurp>");
+            sb.Append("</PmtTpInf>");
+            sb.Append("<PmtMtd>" + pacs.PmtMtd + "</PmtMtd>");
+            sb.Append("<Dbtr>");
+            sb.Append("<Nm>" + pacs.CdtrNm + "</Nm>");
+            sb.Append("</Dbtr>");
+            sb.Append("<DbtrAgt>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>" + pacs.CdtrAgtBICFI + "</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</DbtrAgt>");
+            sb.Append("<CdtrAgt>");
+            sb.Append("<FinInstnId>");
+            sb.Append("<BICFI>" + pacs.DbtrAgtBICFI + "</BICFI>");
+            sb.Append("</FinInstnId>");
+            sb.Append("</CdtrAgt>");
+            sb.Append("<Cdtr>");
+            sb.Append("<Nm>" + pacs.DbtrNm + "</Nm>");
+            sb.Append("</Cdtr>");
+            sb.Append("<CdtrAcct>");
+            sb.Append("<Id>");
+            sb.Append("<Othr>");
+            sb.Append("<Id>" + pacs.DbtrAcctId + "</Id>");
+            sb.Append("</Othr>");
+            sb.Append("</Id>");
+            sb.Append("</CdtrAcct>");
+            sb.Append("</OrgnlTxRef>");
+            sb.Append("</TxInf>");
+            sb.Append("</PmtRtr>");
+            sb.Append("</Document:Document>");
+            sb.Append("</Saa:Body>");
+            sb.Append("</Saa:DataPDU>");
+
+            string filename = pacs.BizMsgIdr + ".xml";
+            string path = ConfigurationManager.AppSettings["LocalSTPPath"] + "\\Export\\MX\\" + filename;
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(sb.ToString());
+            doc.Save(path);
+
+            if (File.Exists(path))
+            {
+                db.SendOutward04(OutwardID, UserName, UserIP);
+            }
+            pacs = null;
+        }
+    }
+}
